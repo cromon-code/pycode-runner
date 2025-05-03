@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>PyCode Runne</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+</head>
+<body>
+  <a href="https://github.com/your-username/your-repo" target="_blank" id="github-link" aria-label="View source on GitHub">
+    <i class="fab fa-github"></i>
+  </a>
+  
+  <div id="header-container">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <h2>PyCode Runner</h2>
+      <div id="buttons">
+        <button id="exe">
+          <i class="fa-solid fa-play"></i>
+          Run (Ctrl + Enter)
+        </button>
+        <button id="share">
+          <i class="fa-solid fa-share-from-square"></i>
+          share code URL
+        </button>
+        <span id="loading">プログラム実行中...</span>
+      </div>
+    </div>
+  </div>
+
+    <div id="initial-loading">
+        エディタと実行環境を準備中... しばらくお待ちください。
+    </div>
+
+    <div id="main-content" class="hidden">
+      <div id="container">
+        <div id="editor-wrapper">
+          <div id="editor"></div>
+        </div>
+        <div id="dragbar"></div>
+        <div id="output-wrapper">
+          <div id="output"></div>
+        </div>
+      </div>
+      
+
+    </div>
+    <footer id="footer">
+      <p>Web site by cromon-code.</p>
+  </footer>
+  
+    <script src="main.js"></script>
+</body>
+</html>

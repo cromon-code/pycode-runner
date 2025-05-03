@@ -1,0 +1,177 @@
+const editorElement = document.getElementById('editor');
+const outputElement = document.getElementById('output');
+const dragbar = document.getElementById('dragbar');
+const container = document.getElementById('container');
+const exeButton = document.getElementById('exe');
+const shareButton = document.getElementById('share');
+const loadingElement = document.getElementById('loading');
+const initialLoadingElement = document.getElementById('initial-loading');
+const mainContentElement = document.getElementById('main-content');
+const header = document.getElementById('header');
+const footer = document.getElementById('footer');
+
+let isDragging = false;
+let editor = null;
+let pyodide = null;
+
+// エディタ領域のリサイズ機能
+dragbar.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isDragging = true;
+    document.body.style.cursor = 'row-resize';
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const containerOffsetTop = container.offsetTop;
+    const newEditorHeight = e.clientY - containerOffsetTop;
+    const containerHeight = container.clientHeight;
+
+    const minEditorHeight = 100;
+    const maxEditorHeight = containerHeight - 100;
+
+    if (newEditorHeight >= minEditorHeight && newEditorHeight <= maxEditorHeight) {
+        editorElement.style.height = `${newEditorHeight}px`;
+
+        const dragbarHeight = dragbar.offsetHeight;
+        const remainingHeight = containerHeight - newEditorHeight - dragbarHeight;
+        outputElement.style.height = `${Math.max(remainingHeight, 50)}px`;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+    }
+});
+
+// Pyodideの読み込み
+const pyodideReadyPromise = (async () => {
+    console.log("Pyodide loading started...");
+    const loadedPyodide = await loadPyodide();
+
+    loadedPyodide.setStdout({
+        batched: (msg) => {
+            outputElement.innerText += msg + "\n";
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+    });
+
+    loadedPyodide.setStderr({
+        batched: (msg) => {
+            outputElement.innerText += msg + "\n";
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+    });
+
+    console.log("Pyodide ready.");
+    return loadedPyodide;
+})();
+
+// Monaco Editorの読み込み
+const editorReadyPromise = new Promise((resolve) => {
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' } });
+    console.log("Monaco Editor loading started...");
+
+    require(['vs/editor/editor.main'], () => {
+        console.log("Monaco Editor modules loaded.");
+
+        const getCodeFromUrl = () => {
+            const encodedCode = new URLSearchParams(window.location.search).get('code');
+            if (encodedCode) {
+                try {
+                    return decodeURIComponent(atob(encodedCode));
+                } catch (e) {
+                    console.error("URLからコードのデコードに失敗:", e);
+                }
+            }
+            return null;
+        };
+
+        const initialCode = getCodeFromUrl() || 'print("Hello World")';
+
+        const createdEditor = monaco.editor.create(editorElement, {
+            value: initialCode,
+            language: 'python',
+            theme: 'vs-dark',
+            fontSize: 18,
+            wordWrap: 'on',
+            lineNumbersMinChars: 3,
+            automaticLayout: true,
+            minimap: { enabled: false }
+        });
+
+        createdEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+            if (!exeButton.disabled) main();
+        });
+
+        console.log("Monaco Editor ready.");
+        resolve(createdEditor);
+    });
+});
+
+// 初期化完了後のUI切り替えとボタン割り当て
+Promise.all([pyodideReadyPromise, editorReadyPromise])
+    .then(([loadedPyodide, createdEditor]) => {
+        pyodide = loadedPyodide;
+        editor = createdEditor;
+
+        initialLoadingElement.classList.add('hidden');
+        mainContentElement.classList.remove('hidden');
+
+        exeButton.onclick = main;
+        shareButton.onclick = shareCode;
+
+        console.log("All components ready.");
+
+        // window.onload で初期サイズを設定
+        window.onload = () => {
+            const containerHeight = container.clientHeight;
+            console.log("container.clientHeight (onload):", containerHeight);
+            const initialEditorHeight = containerHeight * 0.6;
+            const initialOutputHeight = containerHeight * 0.4 - dragbar.offsetHeight;
+
+            editorElement.style.height = `${initialEditorHeight}px`;
+            outputElement.style.height = `${initialOutputHeight}px`;
+        };
+    })
+    .catch(error => {
+        console.error("Initialization failed:", error);
+        initialLoadingElement.innerText = "エラー: 初期化に失敗しました。";
+        initialLoadingElement.style.color = 'red';
+    });
+
+// 実行ボタン
+async function main() {
+    exeButton.disabled = true;
+    loadingElement.style.display = "inline";
+    outputElement.innerText += ""; // 追記に変更
+    document.querySelectorAll("canvas, img.matplotlib").forEach(el => el.remove());
+
+    try {
+        const code = editor.getValue();
+        await pyodide.runPythonAsync(code);
+    } catch (error) {
+        console.error("Python execution error:", error);
+        outputElement.innerText += "\n" + error;
+    } finally {
+        loadingElement.style.display = "none";
+        exeButton.disabled = false;
+    }
+}
+
+// シェアボタン
+function shareCode() {
+    const code = editor.getValue();
+    const encodedCode = btoa(encodeURIComponent(code));
+    const shareUrl = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
+
+    navigator.clipboard.writeText(shareUrl)
+        .then(() => alert('リンクをクリップボードにコピーしました！'))
+        .catch(err => {
+            console.error('クリップボードへのコピーに失敗:', err);
+            alert('クリップボードへのコピーに失敗。\n' + shareUrl);
+        });
+}
