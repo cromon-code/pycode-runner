@@ -1,23 +1,99 @@
+/* ======= Base Styles ======= */
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
     font-size: 16px;
+    min-height: 100vh;
+    overflow: hidden;
     background-color: #1e1e1e;
     color: #d4d4d4;
-    min-height: 100vh;
-    box-sizing: border-box;
-    overflow: hidden;
 }
 
 h2 {
     color: #cccccc;
 }
 
-#header-container {
+/* ======= Layout ======= */
+#header-container,
+#initial-loading {
     padding-left: 25px;
-    box-sizing: border-box; /* padding を含めたサイズにする */
 }
 
+#initial-loading {
+    display: block;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #a0a0a0;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 105px);
+    min-height: 200px;
+    padding: 15px 25px 40px;
+    overflow: hidden;
+    gap: 8px;
+}
+
+/* Editor/Output Wrappers */
+#editor-wrapper,
+#output-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+#output-wrapper {
+    flex-grow: 1;
+    min-height: 100px;
+}
+
+/* ======= Editor & Output ======= */
+#editor,
+#output {
+    width: 100%;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 0.9em;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    box-sizing: border-box;
+}
+
+#editor {
+    min-height: 100px;
+}
+
+#output {
+    flex-grow: 1;
+    overflow: auto;
+    background-color: #1a1a1a;
+    color: #ccc;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #1a1a1a;
+}
+
+#output::-webkit-scrollbar {
+    width: 8px;
+}
+#output::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+#output::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 4px;
+}
+#output::-webkit-scrollbar-thumb:hover {
+    background-color: #666;
+}
+
+/* ======= GitHub Link ======= */
 #github-link {
     position: fixed;
     top: 15px;
@@ -33,47 +109,7 @@ h2 {
     color: #fff;
 }
 
-#container {
-    display: flex;
-    flex-direction: column;
-    /* height: 100vh; */
-    height: calc(100vh - 80px - 25px);
-    min-height: 200px;
-    padding: 15px 25px 40px 25px;
-    box-sizing: border-box;
-    overflow: hidden;
-    gap: 8px;
-}
-
-/* wrapperを明確にする */
-#editor-wrapper {
-    display: flex;
-    flex-direction: column;
-}
-
-#output-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-height: 100px;
-}
-
-#dragbar {
-    height: 6px;
-    min-height: 6px; /* 念のため最小値も設定 */
-    max-height: 6px; /* 念のため最大値も設定 */
-    background: #444;
-    cursor: row-resize;
-    z-index: 10;
-}
-
-#editor {
-    min-height: 100px;
-    width: 100%;
-    border: 1px solid #333;
-    box-sizing: border-box;
-}
-
+/* ======= Buttons ======= */
 #buttons {
     font-size: small;
 }
@@ -108,59 +144,49 @@ h2 {
     vertical-align: middle;
 }
 
-#initial-loading {
-    padding-left: 25px;
-    display: block;
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: #a0a0a0;
+/* ======= Drag Bar ======= */
+#dragbar {
+    height: 6px;
+    background: #444;
+    cursor: row-resize;
+    z-index: 10;
+    min-height: 6px;
+    max-height: 6px;
 }
 
-.hidden {
-    display: none !important;
-}
-
-#output {
-    flex-grow: 1;
-    overflow: auto;
-    background-color: #1a1a1a;
-    color: #ccc;
-    padding: 10px;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9em;
-    border: 1px solid #333;
-    border-radius: 4px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    width: 100%;
-    box-sizing: border-box;
-    scrollbar-width: thin;
-    scrollbar-color: #444 #1a1a1a;
-}
-
-#output::-webkit-scrollbar {
-    width: 8px;
-}
-#output::-webkit-scrollbar-track {
-    background: #1a1a1a;
-}
-#output::-webkit-scrollbar-thumb {
-    background-color: #444;
-    border-radius: 4px;
-}
-#output::-webkit-scrollbar-thumb:hover {
-    background-color: #666;
-}
-
+/* ======= Footer ======= */
 #footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #1e1e1e;
-    text-align: center;
     padding: 10px 0;
-    font-size: 0.85em;
+    background-color: #1e1e1e;
     color: #888;
+    text-align: center;
+    font-size: 0.85em;
     z-index: 999;
+}
+
+/* ======= Utility ======= */
+.hidden {
+    display: none !important;
+}
+
+/* ======= Responsive (Mobile) ======= */
+@media (max-width: 767px) {
+    #container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    #editor,
+    #output {
+        height: 300px !important;
+        overflow-y: auto;
+    }
+
+    #dragbar {
+        display: none;
+    }
 }
