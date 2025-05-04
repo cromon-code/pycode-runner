@@ -1,6 +1,6 @@
 // pyodide-setup.js
 
-// Pyodideの初期化と設定
+// Initializing and configuring Pyodide
 async function initializePyodide(outputElement) {
     console.log("Pyodide loading started...");
     const pyodide = await loadPyodide();
@@ -19,12 +19,12 @@ async function initializePyodide(outputElement) {
         }
     });
 
-    // サンドボックス化 (必要に応じて調整)
+    // Sandboxing (adjust as needed)
     await pyodide.loadPackages(['micropip']);
     await pyodide.runPythonAsync(`
         import os, sys, io, pyodide, builtins
 
-        # ファイルシステム制限
+        # File System Limitations
         sys.modules['os'].__dict__['remove'] = None
         sys.modules['os'].__dict__['unlink'] = None
         sys.modules['os'].__dict__['rename'] = None
@@ -34,19 +34,19 @@ async function initializePyodide(outputElement) {
 
         def restricted_open(*args, **kwargs):
             if 'w' in args[1] or 'a' in args[1] or 'x' in args[1]:
-                raise OSError("書き込み操作は禁止されています")
+                raise OSError("Write operations are prohibited.")
             return original_open(*args, **kwargs)
 
         original_open = io.open
         io.open = restricted_open
         sys.modules['io'].__dict__['open'] = restricted_open
 
-        # ネットワークアクセス制限
+        # Network Access Restrictions
         sys.modules['urllib.request'].__dict__['urlopen'] = None
         sys.modules['requests'].__dict__['get'] = None
         sys.modules['requests'].__dict__['post'] = None
 
-        # 動的コード実行制限
+        # Dynamic Code Execution Restrictions
         builtins.eval = None
         builtins.exec = None
     `);
@@ -55,7 +55,7 @@ async function initializePyodide(outputElement) {
     return pyodide;
 }
 
-// タイムアウト処理
+// Timeout Handling
 async function runWithTimeout(pyodide, code, timeout) {
     let timeoutId;
     const resultPromise = new Promise((resolve, reject) => {
