@@ -14,15 +14,16 @@ let isDragging = false;
 let editor = null;
 let pyodide = null;
 
-// エディタ領域のリサイズ機能
+// Resizing editor area
 dragbar.addEventListener('mousedown', (e) => {
+    if (window.innerWidth < 768) return; // Disabled on smartphones
     e.preventDefault();
     isDragging = true;
     document.body.style.cursor = 'row-resize';
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
+    if (!isDragging || window.innerWidth < 768) return;
 
     const containerOffsetTop = container.offsetTop;
     const newEditorHeight = e.clientY - containerOffsetTop;
@@ -47,7 +48,7 @@ document.addEventListener('mouseup', () => {
     }
 });
 
-// Pyodideの読み込み
+// Load Pyodide
 const pyodideReadyPromise = (async () => {
     console.log("Pyodide loading started...");
     const loadedPyodide = await loadPyodide();
@@ -70,7 +71,7 @@ const pyodideReadyPromise = (async () => {
     return loadedPyodide;
 })();
 
-// Monaco Editorの読み込み
+// Load Monaco Editor
 const editorReadyPromise = new Promise((resolve) => {
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' } });
     console.log("Monaco Editor loading started...");
@@ -112,7 +113,7 @@ const editorReadyPromise = new Promise((resolve) => {
     });
 });
 
-// 初期化完了後のUI切り替えとボタン割り当て
+// UI switching and button assignments after initialization is complete
 Promise.all([pyodideReadyPromise, editorReadyPromise])
     .then(([loadedPyodide, createdEditor]) => {
         pyodide = loadedPyodide;
@@ -126,7 +127,7 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
 
         console.log("All components ready.");
 
-        // window.onload で初期サイズを設定
+        // Set initial size with window.onload
         window.onload = () => {
             const containerHeight = container.clientHeight;
             console.log("container.clientHeight (onload):", containerHeight);
@@ -139,15 +140,15 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
     })
     .catch(error => {
         console.error("Initialization failed:", error);
-        initialLoadingElement.innerText = "エラー: 初期化に失敗しました。";
+        initialLoadingElement.innerText = "Error: Initialization failed.";
         initialLoadingElement.style.color = 'red';
     });
 
-// 実行ボタン
+// Run
 async function main() {
     exeButton.disabled = true;
     loadingElement.style.display = "inline";
-    outputElement.innerText += ""; // 追記に変更
+    outputElement.innerText += "";
     document.querySelectorAll("canvas, img.matplotlib").forEach(el => el.remove());
 
     try {
@@ -162,16 +163,16 @@ async function main() {
     }
 }
 
-// シェアボタン
+// Share
 function shareCode() {
     const code = editor.getValue();
     const encodedCode = btoa(encodeURIComponent(code));
     const shareUrl = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
 
     navigator.clipboard.writeText(shareUrl)
-        .then(() => alert('リンクをクリップボードにコピーしました！'))
+        .then(() => alert('Link copied to clipboard！'))
         .catch(err => {
-            console.error('クリップボードへのコピーに失敗:', err);
-            alert('クリップボードへのコピーに失敗。\n' + shareUrl);
+            console.error('Copy to clipboard failed:', err);
+            alert('Copy to clipboard failed.\n' + shareUrl);
         });
 }
