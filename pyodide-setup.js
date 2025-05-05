@@ -1,5 +1,3 @@
-// pyodide-setup.js
-
 // Initializing and configuring Pyodide
 async function initializePyodide(outputElement) {
     console.log("Pyodide loading started...");

@@ -88,7 +88,7 @@ const editorReadyPromise = new Promise((resolve) => {
       if (compressedCode) {
         try {
           // Decompress using lz-string
-          const decompressedCode
+          const decompressedCode = LZString.decompressFromEncodedURIComponent(compressedCode);
           if (decompressedCode !== null) {
             return decompressedCode;
           } else {
@@ -100,7 +100,7 @@ const editorReadyPromise = new Promise((resolve) => {
       }
       // If the fragment does not have the code, also check for old-style query parameters (for compatibility reasons)
       const queryParams = new URLSearchParams(window.location.search);
-      const encodedCode = new URLSearchParams(window.location.search).get('code');
+      const encodedCode = queryParams.get('code');
       if (encodedCode) {
         try {
           return decodeURIComponent(atob(encodedCode));
