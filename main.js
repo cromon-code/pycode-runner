@@ -260,7 +260,6 @@ async function main() {
   // 実行中はボタンを無効化し、ローディング表示
   exeButton.disabled = true;
   loadingElement.style.display = "inline";
-  outputElement.innerText = ""; // 以前の出力をクリア
   // 以前のMatplotlibなどのcanvasや画像をクリア (もしあれば)
   document.querySelectorAll("canvas, img.matplotlib").forEach(el => el.remove());
 
