@@ -3,6 +3,7 @@ const outputElement = document.getElementById('output');
 const dragbar = document.getElementById('dragbar');
 const container = document.getElementById('container');
 const exeButton = document.getElementById('exe');
+const clearButton = document.getElementById('clear');
 const shareButton = document.getElementById('share');
 const loadingElement = document.getElementById('loading');
 const initialLoadingElement = document.getElementById('initial-loading');
@@ -227,6 +228,7 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
 
     // ボタンクリックハンドラを設定
     exeButton.onclick = main;
+    clearButton.onclick = clearOutput;
     shareButton.onclick = shareCode;
 
     console.log("All components (Pyodide, Editor) ready. UI initialized.");
@@ -280,6 +282,12 @@ async function main() {
     exeButton.disabled = false; // ボタンを有効化
     console.log("Execution process completed.");
   }
+}
+
+// Clear Output
+function clearOutput() {
+  console.log("Clear Output.");
+  outputElement.innerText = "";
 }
 
 // Share code
