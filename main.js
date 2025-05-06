@@ -149,13 +149,11 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
     dom.clearButton.onclick = clearOutput;
     dom.shareButton.onclick = shareCode;
 
-    window.onload = () => {
-      const containerHeight = dom.container.clientHeight;
-      const initialEditorHeight = containerHeight * 0.6;
-      const initialOutputHeight = containerHeight * 0.4 - dom.dragbar.offsetHeight;
-      dom.editor.style.height = `${initialEditorHeight}px`;
-      dom.output.style.height = `${initialOutputHeight}px`;
-    };
+    const containerHeight = dom.container.clientHeight;
+    const initialEditorHeight = containerHeight * 0.6;
+    const initialOutputHeight = containerHeight * 0.4 - dom.dragbar.offsetHeight;
+    dom.editor.style.height = `${initialEditorHeight}px`;
+    dom.output.style.height = `${initialOutputHeight}px`;
   })
   .catch(error => {
     console.error("Initialization failed:", error);
