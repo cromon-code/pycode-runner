@@ -154,22 +154,6 @@ function getCodeFromUrl() {
     });
   }
 
-  if (compressedCode) {
-    console.log("Found 'code' parameter in URL. Decompressing with LZString...");
-    try {
-      const decompressed = LZString.decompressFromEncodedURIComponent(compressedCode);
-       if (decompressed !== null) {
-          console.log("LZString decompression successful.");
-        } else {
-          console.error("LZString decompression failed.");
-        }
-      return Promise.resolve(decompressed || null);
-    } catch (e) {
-      console.error("LZString decompression error:", e);
-      return Promise.resolve(null); // エラーが発生した場合もnullを返す
-    }
-  }
-
   console.log("No code parameter found in URL.");
   return Promise.resolve(null); // パラメータがない場合はnullを返す
 }
