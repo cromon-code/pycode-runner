@@ -114,7 +114,7 @@ h2 {
     font-size: small;
 }
 
-#exe, #share {
+#exe, #clear, #share {
     font-size: inherit;
     padding: 8px 16px;
     margin-right: 8px;
@@ -126,7 +126,7 @@ h2 {
     transition: background-color 0.2s;
 }
 
-#exe:hover, #share:hover {
+#exe:hover, #clear.hover, #share:hover {
     background-color: #4f4f4f;
 }
 

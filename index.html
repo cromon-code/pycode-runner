@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
     <title>PyCode Runner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lzma@2.3.2/src/lzma_worker-min.js"></script>
 </head>
 <body>
+  <!-- GitHub Link -->
   <a href="https://github.com/cromon-code/pycode-runner/" target="_blank" id="github-link" aria-label="View source on GitHub">
     <i class="fab fa-github"></i>
   </a>
   
+  <!-- Header -->
   <div id="header-container">
     <div style="display: flex; align-items: center; gap: 1rem;">
       <h2>PyCode Runner</h2>
@@ -25,7 +31,7 @@
         </button>
         <button id="clear">
           <i class="fa-solid fa-arrows-rotate"></i>
-          Refresh
+          Clear
         </button>
         <button id="share">
           <i class="fa-solid fa-share-from-square"></i>
@@ -36,25 +42,27 @@
     </div>
   </div>
 
-    <div id="initial-loading">
-      Preparing editor and execution environment ... Please wait. 
-    </div>
+  <!-- Initial Loading -->
+  <div id="initial-loading">
+    Preparing editor and execution environment ... Please wait. 
+  </div>
 
-    <div id="main-content" class="hidden">
-      <div id="container">
-        <div id="editor-wrapper">
-          <div id="editor"></div>
-        </div>
-        <div id="dragbar"></div>
-        <div id="output-wrapper">
-          <div id="output"></div>
-        </div>
+  <!-- Main Content -->
+  <div id="main-content" class="hidden">
+    <div id="container">
+      <div id="editor-wrapper">
+        <div id="editor"></div>
       </div>
-      
-
+      <div id="dragbar"></div>
+      <div id="output-wrapper">
+        <div id="output"></div>
+      </div>
     </div>
-    <footer id="footer">
-      <p>Web site by cromon-code.</p>
+  </div>
+  
+  <!-- Footer -->
+  <footer id="footer">
+    <p>Web site by cromon-code.</p>
   </footer>
   
     <script src="main.js"></script>
