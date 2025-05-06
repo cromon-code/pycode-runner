@@ -14,9 +14,9 @@ let isDragging = false;
 let editor = null;
 let pyodide = null;
 
-// Resizing editor area
+// Resize logic
 dragbar.addEventListener('mousedown', (e) => {
-  if (window.innerWidth < 768) return; // Disabled on smartphones
+  if (window.innerWidth < 768) return;
   e.preventDefault();
   isDragging = true;
   document.body.style.cursor = 'row-resize';
@@ -48,6 +48,65 @@ document.addEventListener('mouseup', () => {
   }
 });
 
+// LZMA utils
+function compressCodeLZMA(code, callback) {
+  LZMA.compress(code, 9, (result, error) => {
+    if (error) {
+      console.error("LZMA compression error:", error);
+      callback(null);
+    } else {
+      const base64url = btoa(String.fromCharCode(...result))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      callback(base64url);
+    }
+  });
+}
+
+function decompressCodeLZMA(base64url, callback) {
+  try {
+    const binaryString = atob(base64url.replace(/-/g, "+").replace(/_/g, "/"));
+    const byteArray = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+    LZMA.decompress(byteArray, (result, error) => {
+      if (error) {
+        console.error("LZMA decompression error:", error);
+        callback(null);
+      } else {
+        callback(result);
+      }
+    });
+  } catch (e) {
+    console.error("Invalid base64url input for LZMA:", e);
+    callback(null);
+  }
+}
+
+// Get code from URL
+function getCodeFromUrl() {
+  const fragment = window.location.hash.substring(1);
+  const params = new URLSearchParams(fragment);
+  const lzmaCode = params.get('lzma');
+  const compressedCode = params.get('code');
+
+  if (lzmaCode) {
+    return new Promise(resolve => {
+      decompressCodeLZMA(lzmaCode, decompressed => {
+        resolve(decompressed || null);
+      });
+    });
+  }
+
+  if (compressedCode) {
+    try {
+      const decompressed = LZString.decompressFromEncodedURIComponent(compressedCode);
+      return Promise.resolve(decompressed || null);
+    } catch (e) {
+      console.error("LZString decompression error:", e);
+    }
+  }
+
+  return Promise.resolve(null);
+}
+
 // Load Pyodide
 const pyodideReadyPromise = (async () => {
   console.log("Pyodide loading started...");
@@ -78,62 +137,29 @@ const editorReadyPromise = new Promise((resolve) => {
 
   require(['vs/editor/editor.main'], () => {
     console.log("Monaco Editor modules loaded.");
+    getCodeFromUrl().then(initialCode => {
+      const createdEditor = monaco.editor.create(editorElement, {
+        value: initialCode || 'print("Hello World")',
+        language: 'python',
+        theme: 'vs-dark',
+        fontSize: 18,
+        wordWrap: 'on',
+        lineNumbersMinChars: 3,
+        automaticLayout: true,
+        minimap: { enabled: false }
+      });
 
-    const getCodeFromUrl = () => {
-      // check fragment id
-      const fragment = window.location.hash.substring(1);  // remove '#'
-      const params = new URLSearchParams(fragment);
-      const compressedCode = params.get('code');
+      createdEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+        if (!exeButton.disabled) main();
+      });
 
-      if (compressedCode) {
-        try {
-          // Decompress using lz-string
-          const decompressedCode = LZString.decompressFromEncodedURIComponent(compressedCode);
-          if (decompressedCode !== null) {
-            return decompressedCode;
-          } else {
-            console.error("Failed to decode code from URL Fragment: Decompression failed");
-          }
-        } catch (e) {
-          console.error("Failed to decode code from URL Fragment:", e);
-        }
-      }
-      // If the fragment does not have the code, also check for old-style query parameters (for compatibility reasons)
-      const queryParams = new URLSearchParams(window.location.search);
-      const encodedCode = queryParams.get('code');
-      if (encodedCode) {
-        try {
-          return decodeURIComponent(atob(encodedCode));
-        } catch (e) {
-          console.error("Failed to decode code from URL:", e);
-        }
-      }
-      return null;
-    };
-
-    const initialCode = getCodeFromUrl() || 'print("Hello World")';
-
-    const createdEditor = monaco.editor.create(editorElement, {
-      value: initialCode,
-      language: 'python',
-      theme: 'vs-dark',
-      fontSize: 18,
-      wordWrap: 'on',
-      lineNumbersMinChars: 3,
-      automaticLayout: true,
-      minimap: { enabled: false }
+      console.log("Monaco Editor ready.");
+      resolve(createdEditor);
     });
-
-    createdEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      if (!exeButton.disabled) main();
-    });
-
-    console.log("Monaco Editor ready.");
-    resolve(createdEditor);
   });
 });
 
-// UI switching and button assignments after initialization is complete
+// UI init
 Promise.all([pyodideReadyPromise, editorReadyPromise])
   .then(([loadedPyodide, createdEditor]) => {
     pyodide = loadedPyodide;
@@ -147,7 +173,6 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
 
     console.log("All components ready.");
 
-    // Set initial size with window.onload
     window.onload = () => {
       const containerHeight = container.clientHeight;
       console.log("container.clientHeight (onload):", containerHeight);
@@ -164,7 +189,7 @@ Promise.all([pyodideReadyPromise, editorReadyPromise])
     initialLoadingElement.style.color = 'red';
   });
 
-// Run
+// Execute Python
 async function main() {
   exeButton.disabled = true;
   loadingElement.style.display = "inline";
@@ -183,16 +208,20 @@ async function main() {
   }
 }
 
-// Share
+// Share code
 function shareCode() {
   const code = editor.getValue();
-  const compressedCode = LZString.compressToEncodedURIComponent(code);
-  const shareUrl = `${window.location.origin}${window.location.pathname}#code=${compressedCode}`;
-
-  navigator.clipboard.writeText(shareUrl)
-    .then(() => alert('Link copied to clipboard！'))
-    .catch(err => {
-      console.error('Copy to clipboard failed:', err);
-      alert('Copy to clipboard failed.\n' + shareUrl);
-    });
+  compressCodeLZMA(code, (compressed) => {
+    if (!compressed) {
+      alert("Failed to compress code.");
+      return;
+    }
+    const shareUrl = `${window.location.origin}${window.location.pathname}#lzma=${compressed}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => alert('Link copied to clipboard！'))
+      .catch(err => {
+        console.error('Copy to clipboard failed:', err);
+        alert('Copy to clipboard failed.\n' + shareUrl);
+      });
+  });
 }
